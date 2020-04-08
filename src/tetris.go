@@ -1,14 +1,14 @@
 package main
 
-//  ________________       ______________      ________________    _________           __            _____
-// |                |     |              |    |                |  |   ___   \         |  |          /      \
-//  ¯¯¯¯¯|   |¯¯¯¯¯¯      |  |¯¯¯¯¯¯¯¯¯¯¯      ¯¯¯¯¯|   |¯¯¯¯¯¯   |  |   |   |         ¯¯          /  \¯¯\  \
-//		 |   |            |  |___________           |   |         |   ¯¯¯   /          __          \   \  ¯¯¯
-//       |   |            |              |          |   |         |        \          |  |          \   \
-//       |   |            |  |¯¯¯¯¯¯¯¯¯¯¯           |   |         |   | \   \         |  |       __  \   \
-//       |   |            |  |___________           |   |         |   |  \   \        |  |      /  /  \   \
-//	     |   |			  | 	         |          |   |         |   |   \   \       |  |      \   ¯¯    /
-//        ¯¯¯              ¯¯¯¯¯¯¯¯¯¯¯¯¯¯            ¯¯¯           ¯¯¯      ¯¯¯        ¯¯         ¯¯¯¯¯¯¯¯
+//  ________________       ______________      ________________    _________           __        ________
+// |                |     |              |    |                |  |   ___   \         |  |      /        \
+//  ¯¯¯¯¯|   |¯¯¯¯¯¯      |  |¯¯¯¯¯¯¯¯¯¯¯      ¯¯¯¯¯|   |¯¯¯¯¯¯   |  |   |   |         ¯¯      /  \¯¯¯¯\  \
+//		 |   |            |  |___________           |   |         |   ¯¯¯   /          __       \   \   ¯¯¯
+//       |   |            |              |          |   |         |        \          |  |        \   \
+//       |   |            |  |¯¯¯¯¯¯¯¯¯¯¯           |   |         |   | \   \         |  |       __ \   \
+//       |   |            |  |___________           |   |         |   |  \   \        |  |     /  /   \   \
+//	     |   |			  | 	         |          |   |         |   |   \   \       |  |     \   ¯¯¯¯   /
+//        ¯¯¯              ¯¯¯¯¯¯¯¯¯¯¯¯¯¯            ¯¯¯           ¯¯¯      ¯¯¯        ¯¯       ¯¯¯¯¯¯¯¯¯¯
 import (
 	"fmt"
 	"os"
@@ -32,6 +32,8 @@ var (
 	Delay int
 	// Line the obj found
 	Line int
+	//Histroy show the histroy of the game
+	Histroy deBug
 )
 
 type dir int
@@ -42,12 +44,21 @@ type obj struct {
 	lastplace [8]int
 	d         bool
 	dead      []int
-	touch     bool
+}
+type deBug struct {
+	place     [200][]int
+	lastplace [200][]int
+	dir       []dir
+	d         []bool
+	dead      []int
+	counter   int
+	activate  bool
 }
 
 func init() {
 	edge()
 	Delay = 300
+
 }
 
 func main() {
@@ -57,6 +68,7 @@ func main() {
 	bob := newobj(x)
 	T = time.Now().UnixNano()
 	for {
+		debug(bob)
 		T = time.Now().UnixNano()
 		add(bob)
 		view(bob)
@@ -71,7 +83,10 @@ func main() {
 		view(bob)
 		fmt.Printf("%v \n", Fall)
 		fmt.Println(r)
-
+		if Histroy.activate {
+			Histroy.Print()
+			break
+		}
 	}
 }
 
@@ -97,6 +112,8 @@ func view(b *obj) {
 	}
 	if len(b.dead) != 0 {
 		fmt.Printf("pl: %v \nlp: %v \nded:%v \n", b.place, b.lastplace, b.dead[len(b.dead)-8:])
+	} else {
+		fmt.Printf("pl: %v \nlp: %v \n", b.place, b.lastplace)
 	}
 }
 
@@ -117,7 +134,7 @@ func newobj(p [8]int) *obj {
 	//sblock
 	//Tblock = [8]int{5, 0, 4, 0, 6, 0, 5, 1}
 	//zblock
-	name := obj{p, dir(0), p, false, nil, false}
+	name := obj{p, dir(0), p, false, nil}
 
 	return &name
 }
@@ -183,9 +200,12 @@ func move(bob *obj) {
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]--
 		}
+	case 255: //debug
+		Histroy.activate = !Histroy.activate
 	default:
 		del(bob)
 	}
+
 	add(bob)
 
 }
@@ -204,7 +224,10 @@ func stod(s string) dir {
 		d = dir(2)
 	case "s":
 		d = dir(0)
+	case "H":
+		d = dir(255)
 	}
+
 	return d
 }
 func times(bob *obj) {
@@ -247,5 +270,40 @@ func linedown(line int) {
 }
 func (bop *obj) newlook() {
 	bop.place = [8]int{5, 0, 6, 0, 5, 1, 6, 1}
+
+}
+func debug(d *obj) {
+	Histroy.dead = d.dead
+	pl := []int{}
+	lp := []int{}
+	for _, val := range d.lastplace {
+		lp = append(lp, val)
+	}
+	for _, val := range d.place {
+		pl = append(pl, val)
+	}
+	Histroy.place[Histroy.counter] = append(Histroy.place[Histroy.counter], pl...)
+	Histroy.lastplace[Histroy.counter] = append(Histroy.lastplace[Histroy.counter], lp...)
+	Histroy.dir = append(Histroy.dir, d.dir)
+	Histroy.d = append(Histroy.d, d.d)
+	Histroy.counter++
+
+}
+func (*deBug) Print() {
+	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+
+	fmt.Print("place : lastplace \n")
+	for num := 0; num < len(Histroy.place); num++ {
+		if Histroy.place[num] != nil {
+			fmt.Printf(" %v :%v \n", Histroy.place[num], Histroy.lastplace[num])
+		} else {
+			fmt.Print("\n")
+			break
+		}
+	}
+
+	fmt.Printf("dir %v\ndead %v\nd %v\n", Histroy.dir, Histroy.dead, Histroy.d)
 
 }
