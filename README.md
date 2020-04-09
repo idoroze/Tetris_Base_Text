@@ -7,3 +7,5 @@
 * s - go down
 
 ##debug:
+* H - stop and look the value
+* h - u/hide the valuse of place , lastplace, dead

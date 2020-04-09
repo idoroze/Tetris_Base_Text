@@ -34,6 +34,8 @@ var (
 	Line int
 	//Histroy show the histroy of the game
 	Histroy deBug
+	//Hide the place,lastpalce,dead
+	Hide bool
 )
 
 type dir int
@@ -110,10 +112,13 @@ func view(b *obj) {
 		}
 
 	}
-	if len(b.dead) != 0 {
-		fmt.Printf("pl: %v \nlp: %v \nded:%v \n", b.place, b.lastplace, b.dead[len(b.dead)-8:])
-	} else {
-		fmt.Printf("pl: %v \nlp: %v \n", b.place, b.lastplace)
+	if Hide {
+
+		if len(b.dead) != 0 {
+			fmt.Printf("pl: %v \nlp: %v \nded:%v \n", b.place, b.lastplace, b.dead[len(b.dead)-8:])
+		} else {
+			fmt.Printf("pl: %v \nlp: %v \n", b.place, b.lastplace)
+		}
 	}
 }
 
@@ -149,10 +154,8 @@ func add(bob *obj) {
 
 	if len(b.dead) != 0 {
 		for rip := 0; rip < len(bob.dead); rip += 2 { // add the dead
-			fmt.Println(b.dead)
 			Bord[b.dead[rip+1]][b.dead[rip]] = 3
 		}
-		//panic(bob.dead)
 	}
 
 	for i := 0; i < 8; i += 2 {
@@ -202,6 +205,8 @@ func move(bob *obj) {
 		}
 	case 255: //debug
 		Histroy.activate = !Histroy.activate
+	case 404:
+		Hide = !Hide
 	default:
 		del(bob)
 	}
@@ -218,14 +223,16 @@ func del(bob *obj) {
 func stod(s string) dir {
 	var d dir
 	switch s {
-	case "d":
+	case "d", "D":
 		d = dir(1)
-	case "a":
+	case "a", "A":
 		d = dir(2)
-	case "s":
+	case "s", "S":
 		d = dir(0)
 	case "H":
 		d = dir(255)
+	case "h":
+		d = dir(404)
 	}
 
 	return d
