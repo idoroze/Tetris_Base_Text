@@ -210,6 +210,7 @@ func move(bob *obj) {
 		Hide = !Hide
 	default:
 		del(bob)
+		bob.dir = -1
 	}
 
 	add(bob)
@@ -234,6 +235,8 @@ func stod(s string) dir {
 		d = dir(255)
 	case "h":
 		d = dir(404)
+	default:
+		d = dir(-1)
 	}
 
 	return d
@@ -294,6 +297,7 @@ func debug(d *obj) {
 	Histroy.lastplace[Histroy.counter] = append(Histroy.lastplace[Histroy.counter], lp...)
 	Histroy.dir = append(Histroy.dir, d.dir)
 	Histroy.d = append(Histroy.d, d.d)
+	Histroy.line = append(Histroy.line, Line)
 	Histroy.counter++
 
 }
