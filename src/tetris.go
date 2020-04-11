@@ -186,7 +186,7 @@ func move(bob *obj) {
 	switch int(bob.dir) {
 	case 0:
 		del(bob)
-		if Line < 21 {
+		if Line < 19 {
 			for i := 1; i < 8; i += 2 {
 				bob.place[i]++
 
