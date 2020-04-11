@@ -66,26 +66,28 @@ func init() {
 
 func main() {
 	fmt.Println("ready")
+	T = time.Now().UnixNano()
 	var r string
 	x := [8]int{5, 0, 6, 0, 5, 1, 6, 1}
 	bob := newobj(x)
-	T = time.Now().UnixNano()
+	view(bob)
+
 	for {
 		debug(bob)
 		T = time.Now().UnixNano()
-		add(bob)
-		view(bob)
+
 		_, err := fmt.Scanln(&r)
 		if err != nil {
 			panic(err)
 		}
+
 		bob.lastplace = bob.place
 		bob.dir = stod(r)
-		move(bob)
+
 		times(bob)
 		view(bob)
+
 		fmt.Printf("%v \n", Fall)
-		fmt.Println(r)
 		if Histroy.activate {
 			Histroy.Print()
 			break
@@ -97,7 +99,7 @@ func view(b *obj) {
 	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
 	cmd.Stdout = os.Stdout
 	cmd.Run()
-
+	add(b)
 	for y := 0; y < heigth; y++ {
 		for x := 0; x < width; x++ {
 			if x < width-1 {
@@ -114,13 +116,13 @@ func view(b *obj) {
 
 	}
 	if Hide {
-
 		if len(b.dead) != 0 {
 			fmt.Printf("pl: %v \nlp: %v \nded:%v \n", b.place, b.lastplace, b.dead[len(b.dead)-8:])
 		} else {
 			fmt.Printf("pl: %v \nlp: %v \n", b.place, b.lastplace)
 		}
 	}
+	del(b)
 }
 
 func edge() {
@@ -145,8 +147,8 @@ func newobj(p [8]int) *obj {
 	return &name
 }
 
-func add(bob *obj) {
-	b := bob
+func add(b *obj) {
+	move(b)
 	for out := 0; out < 8; out++ {
 		if b.place[out] > 21 { // can walk tour the edge
 			b.place = b.lastplace
@@ -154,7 +156,7 @@ func add(bob *obj) {
 	}
 
 	if len(b.dead) != 0 {
-		for rip := 0; rip < len(bob.dead); rip += 2 { // add the dead
+		for rip := 0; rip < len(b.dead); rip += 2 { // add the dead
 			Bord[b.dead[rip+1]][b.dead[rip]] = 3
 		}
 	}
@@ -168,12 +170,12 @@ func add(bob *obj) {
 			}
 			if b.d {
 				for _, val := range b.lastplace { //add to dead
-					bob.dead = append(bob.dead, val)
-					bob.newlook()
+					b.dead = append(b.dead, val)
+					b.newlook()
 					b.d = false
 				}
 			} else {
-				bob.place = bob.lastplace
+				b.place = b.lastplace
 			}
 
 		}
@@ -181,11 +183,16 @@ func add(bob *obj) {
 
 }
 
-func move(bob *obj) {
+func del(bob *obj) {
+	for i := 0; i < 8; i += 2 {
+		Bord[bob.place[i+1]][bob.place[i]] = 0
+		Bord[bob.lastplace[i+1]][bob.lastplace[i]] = 0
+	}
+}
 
+func move(bob *obj) {
 	switch int(bob.dir) {
-	case 0:
-		del(bob)
+	case 0: //down
 		if Line < 19 {
 			for i := 1; i < 8; i += 2 {
 				bob.place[i]++
@@ -195,12 +202,10 @@ func move(bob *obj) {
 			bob.newlook()
 		}
 	case 1: //left
-		del(bob)
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]++
 		}
 	case 2: //right
-		del(bob)
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]--
 		}
@@ -209,19 +214,11 @@ func move(bob *obj) {
 	case 404:
 		Hide = !Hide
 	default:
-		del(bob)
 		bob.dir = -1
 	}
 
-	add(bob)
-
 }
 
-func del(bob *obj) {
-	for i := 0; i < 8; i += 2 {
-		Bord[bob.place[i+1]][bob.place[i]] = 0
-	}
-}
 func stod(s string) dir {
 	var d dir
 	switch s {
@@ -251,8 +248,6 @@ func times(bob *obj) {
 		Line = 0
 		T = time.Now().UnixNano()
 	}
-	del(bob)
-
 	for x := 0; x < Fall; x++ {
 		for i := 1; i < 8; i += 2 {
 			if bob.place[i] < 20 {
@@ -264,25 +259,11 @@ func times(bob *obj) {
 	}
 }
 
-func check() {
-	a := Bord[20][1:11]
-	for line := 0; line < heigth-1; line++ {
-		for num := 0; num < len(a); num++ {
-			if a[0] == a[num] && a[num] != 0 {
-				linedown(line)
-			}
-		}
-	}
-}
-func linedown(line int) {
-	for x := line; x >= 0; x-- {
-		Bord[line] = Bord[x]
-	}
-}
 func (bop *obj) newlook() {
 	bop.place = [8]int{5, 0, 6, 0, 5, 1, 6, 1}
-
 }
+
+//debug
 func debug(d *obj) {
 	Histroy.dead = d.dead
 	pl := []int{}
