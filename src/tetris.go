@@ -51,7 +51,6 @@ type deBug struct {
 	place     [200][]int
 	lastplace [200][]int
 	dir       []dir
-	d         []bool
 	dead      []int
 	counter   int
 	activate  bool
@@ -161,12 +160,15 @@ func add(b *obj) {
 	}
 
 	for i := 0; i < 8; i += 2 {
+
 		if Bord[b.place[i+1]][b.place[i]] != 1 {
 			Bord[b.place[i+1]][b.place[i]] = 2
 		} else {
-			if b.place[i+1] <= 20 {
+
+			if b.place[i+1] >= 20 {
 				b.d = true
 			}
+
 			if b.d {
 				for _, val := range b.lastplace { //add to dead
 					b.dead = append(b.dead, val)
@@ -259,7 +261,6 @@ func debug(d *obj) {
 	Histroy.place[Histroy.counter] = append(Histroy.place[Histroy.counter], pl...)
 	Histroy.lastplace[Histroy.counter] = append(Histroy.lastplace[Histroy.counter], lp...)
 	Histroy.dir = append(Histroy.dir, d.dir)
-	Histroy.d = append(Histroy.d, d.d)
 	Histroy.line = append(Histroy.line, Line)
 	Histroy.counter++
 
@@ -272,13 +273,29 @@ func (*deBug) Print() {
 	fmt.Print("place : lastplace \n")
 	for num := 0; num < len(Histroy.place); num++ {
 		if Histroy.place[num] != nil {
-			fmt.Printf(" %v :%v \n", Histroy.place[num], Histroy.lastplace[num])
+			fmt.Printf("\n\t%v:%v\n", Histroy.place[num], Histroy.lastplace[num])
 		} else {
 			fmt.Print("\n")
 			break
 		}
 	}
+	fmt.Print("dead:\n")
+	if len(Histroy.dead) != 0 {
 
-	fmt.Printf("dir %v\ndead %v\nd %v\nline:%v\n", Histroy.dir, Histroy.dead, Histroy.d, Histroy.line)
+		for id := range Histroy.dead {
+			if (id+1)%8 == 0 {
+				fmt.Print("\n")
+			} else {
+				if id%8 == 0 {
+					fmt.Printf("\t%v\n", Histroy.dead[id:id+8])
+				}
+
+			}
+
+		}
+
+	}
+
+	fmt.Printf("dir: \n\t%v\nLine:\n\t%v\n", Histroy.dir, Histroy.line)
 
 }
