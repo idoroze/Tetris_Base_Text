@@ -32,8 +32,6 @@ var (
 	Delay int
 	// Line the obj found
 	Line int
-	//Histroy show the histroy of the game
-	Histroy deBug
 	//Hide the place,lastpalce,dead
 	Hide bool
 )
@@ -46,16 +44,6 @@ type obj struct {
 	lastplace [8]int
 	d         bool
 	dead      []int
-}
-type deBug struct {
-	place     [200][]int
-	lastplace [200][]int
-	dir       []dir
-	d         []bool
-	dead      []int
-	counter   int
-	activate  bool
-	line      []int
 }
 
 func init() {
@@ -71,7 +59,7 @@ func main() {
 	bob := newobj(x)
 	T = time.Now().UnixNano()
 	for {
-		debug(bob)
+
 		T = time.Now().UnixNano()
 		add(bob)
 		view(bob)
@@ -86,10 +74,7 @@ func main() {
 		view(bob)
 		fmt.Printf("%v \n", Fall)
 		fmt.Println(r)
-		if Histroy.activate {
-			Histroy.Print()
-			break
-		}
+
 	}
 }
 
@@ -204,8 +189,7 @@ func move(bob *obj) {
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]--
 		}
-	case 255: //debug
-		Histroy.activate = !Histroy.activate
+
 	case 404:
 		Hide = !Hide
 	default:
@@ -230,8 +214,6 @@ func stod(s string) dir {
 		d = dir(2)
 	case "s", "S":
 		d = dir(0)
-	case "H":
-		d = dir(255)
 	case "h":
 		d = dir(404)
 	}
@@ -278,57 +260,5 @@ func linedown(line int) {
 }
 func (bop *obj) newlook() {
 	bop.place = [8]int{5, 0, 6, 0, 5, 1, 6, 1}
-
-}
-func debug(d *obj) {
-	Histroy.dead = d.dead
-	pl := []int{}
-	lp := []int{}
-	for _, val := range d.lastplace {
-		lp = append(lp, val)
-	}
-	for _, val := range d.place {
-		pl = append(pl, val)
-	}
-	Histroy.place[Histroy.counter] = append(Histroy.place[Histroy.counter], pl...)
-	Histroy.lastplace[Histroy.counter] = append(Histroy.lastplace[Histroy.counter], lp...)
-	Histroy.dir = append(Histroy.dir, d.dir)
-	Histroy.d = append(Histroy.d, d.d)
-	Histroy.counter++
-	Histroy.line = append(Histroy.line, Line)
-
-}
-func (*deBug) Print() {
-	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
-	cmd.Stdout = os.Stdout
-	cmd.Run()
-
-	fmt.Print("place : lastplace \n")
-	for num := 0; num < len(Histroy.place); num++ {
-		if Histroy.place[num] != nil {
-			fmt.Printf("\n\t%v:%v\n", Histroy.place[num], Histroy.lastplace[num])
-		} else {
-			fmt.Print("\n")
-			break
-		}
-	}
-	fmt.Print("dead:\n")
-	if len(Histroy.dead) != 0 {
-
-		for id := range Histroy.dead {
-			if (id+1)%8 == 0 {
-				fmt.Print("\n")
-			} else {
-				if id%8 == 0 {
-					fmt.Printf("\t%v\n", Histroy.dead[id:id+8])
-				}
-
-			}
-
-		}
-
-	}
-
-	fmt.Printf("dir: \n\t%v\nd:\n\t%v\nLine:\n\t%v\n", Histroy.dir, Histroy.d, Histroy.line)
 
 }
