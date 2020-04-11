@@ -313,6 +313,7 @@ func debug(d *obj) {
 	Histroy.d = append(Histroy.d, d.d)
 	Histroy.line = append(Histroy.line, Line)
 	Histroy.counter++
+	Histroy.line = append(Histroy.line, Line)
 
 }
 func (*deBug) Print() {
@@ -323,13 +324,29 @@ func (*deBug) Print() {
 	fmt.Print("place : lastplace \n")
 	for num := 0; num < len(Histroy.place); num++ {
 		if Histroy.place[num] != nil {
-			fmt.Printf(" %v :%v \n", Histroy.place[num], Histroy.lastplace[num])
+			fmt.Printf("\n\t%v:%v\n", Histroy.place[num], Histroy.lastplace[num])
 		} else {
 			fmt.Print("\n")
 			break
 		}
 	}
+	fmt.Print("dead:\n")
+	if len(Histroy.dead) != 0 {
 
-	fmt.Printf("dir %v\ndead %v\nd %v\nline:%v\n", Histroy.dir, Histroy.dead, Histroy.d, Histroy.line)
+		for id := range Histroy.dead {
+			if (id+1)%8 == 0 {
+				fmt.Print("\n")
+			} else {
+				if id%8 == 0 {
+					fmt.Printf("\t%v\n", Histroy.dead[id:id+8])
+				}
+
+			}
+
+		}
+
+	}
+
+	fmt.Printf("dir: \n\t%v\nd:\n\t%v\nLine:\n\t%v\n", Histroy.dir, Histroy.d, Histroy.line)
 
 }
