@@ -186,9 +186,10 @@ func move(bob *obj) {
 	switch int(bob.dir) {
 	case 0:
 		del(bob)
-		if bob.place[1] != 20 && bob.place[3] != 20 && bob.place[5] != 20 && bob.place[7] != 20 || Line < 21 {
+		if Line < 21 {
 			for i := 1; i < 8; i += 2 {
 				bob.place[i]++
+
 			}
 		} else {
 			bob.newlook()
@@ -248,33 +249,15 @@ func times(bob *obj) {
 		T = time.Now().UnixNano()
 	}
 	del(bob)
-	if bob.place[1] != 20 && bob.place[3] != 20 && bob.place[5] != 20 && bob.place[7] != 20 {
 
-		for x := 0; x < Fall; x++ {
-			for i := 1; i < 8; i += 2 {
-				if bob.place[i] < 20 {
-					bob.place[i]++
-				}
+	for x := 0; x < Fall; x++ {
+		for i := 1; i < 8; i += 2 {
+			if bob.place[i] < 20 {
+				bob.place[i]++
+			} else {
+				bob.place[i] = 20
 			}
 		}
-	} else {
-		holder := [4]int{1, -1, -1, -1}
-		c := 1
-		for i := 3; i < 8; i += 2 {
-			if bob.place[holder[0]] < bob.place[i] {
-				holder[0] = i
-			} else if bob.place[holder[0]] == bob.place[i] {
-				holder[c] = i
-				c++
-			}
-		}
-		for _, pl := range holder {
-			if pl != -1 {
-				bob.place[pl] = 20
-			}
-
-		}
-
 	}
 }
 
@@ -311,7 +294,6 @@ func debug(d *obj) {
 	Histroy.lastplace[Histroy.counter] = append(Histroy.lastplace[Histroy.counter], lp...)
 	Histroy.dir = append(Histroy.dir, d.dir)
 	Histroy.d = append(Histroy.d, d.d)
-	Histroy.line = append(Histroy.line, Line)
 	Histroy.counter++
 	Histroy.line = append(Histroy.line, Line)
 
