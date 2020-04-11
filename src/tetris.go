@@ -171,10 +171,9 @@ func move(bob *obj) {
 	switch int(bob.dir) {
 	case 0:
 		del(bob)
-		if Line < 21 {
+		if bob.place[1] != 20 && bob.place[3] != 20 && bob.place[5] != 20 && bob.place[7] != 20 || Line < 21 {
 			for i := 1; i < 8; i += 2 {
 				bob.place[i]++
-
 			}
 		} else {
 			bob.newlook()
@@ -231,15 +230,33 @@ func times(bob *obj) {
 		T = time.Now().UnixNano()
 	}
 	del(bob)
+	if bob.place[1] != 20 && bob.place[3] != 20 && bob.place[5] != 20 && bob.place[7] != 20 {
 
-	for x := 0; x < Fall; x++ {
-		for i := 1; i < 8; i += 2 {
-			if bob.place[i] < 20 {
-				bob.place[i]++
-			} else {
-				bob.place[i] = 20
+		for x := 0; x < Fall; x++ {
+			for i := 1; i < 8; i += 2 {
+				if bob.place[i] < 20 {
+					bob.place[i]++
+				}
 			}
 		}
+	} else {
+		holder := [4]int{1, -1, -1, -1}
+		c := 1
+		for i := 3; i < 8; i += 2 {
+			if bob.place[holder[0]] < bob.place[i] {
+				holder[0] = i
+			} else if bob.place[holder[0]] == bob.place[i] {
+				holder[c] = i
+				c++
+			}
+		}
+		for _, pl := range holder {
+			if pl != -1 {
+				bob.place[pl] = 20
+			}
+
+		}
+
 	}
 }
 
@@ -262,3 +279,59 @@ func (bop *obj) newlook() {
 	bop.place = [8]int{5, 0, 6, 0, 5, 1, 6, 1}
 
 }
+<<<<<<< HEAD
+=======
+func debug(d *obj) {
+	Histroy.dead = d.dead
+	pl := []int{}
+	lp := []int{}
+	for _, val := range d.lastplace {
+		lp = append(lp, val)
+	}
+	for _, val := range d.place {
+		pl = append(pl, val)
+	}
+	Histroy.place[Histroy.counter] = append(Histroy.place[Histroy.counter], pl...)
+	Histroy.lastplace[Histroy.counter] = append(Histroy.lastplace[Histroy.counter], lp...)
+	Histroy.dir = append(Histroy.dir, d.dir)
+	Histroy.d = append(Histroy.d, d.d)
+	Histroy.line = append(Histroy.line, Line)
+	Histroy.counter++
+	Histroy.line = append(Histroy.line, Line)
+
+}
+func (*deBug) Print() {
+	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+
+	fmt.Print("place : lastplace \n")
+	for num := 0; num < len(Histroy.place); num++ {
+		if Histroy.place[num] != nil {
+			fmt.Printf("\n\t%v:%v\n", Histroy.place[num], Histroy.lastplace[num])
+		} else {
+			fmt.Print("\n")
+			break
+		}
+	}
+	fmt.Print("dead:\n")
+	if len(Histroy.dead) != 0 {
+
+		for id := range Histroy.dead {
+			if (id+1)%8 == 0 {
+				fmt.Print("\n")
+			} else {
+				if id%8 == 0 {
+					fmt.Printf("\t%v\n", Histroy.dead[id:id+8])
+				}
+
+			}
+
+		}
+
+	}
+
+	fmt.Printf("dir: \n\t%v\nd:\n\t%v\nLine:\n\t%v\n", Histroy.dir, Histroy.d, Histroy.line)
+
+}
+>>>>>>> parent of 38a0e46... Revert "try to fix the folw cube"
