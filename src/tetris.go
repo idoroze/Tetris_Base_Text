@@ -84,7 +84,6 @@ func main() {
 		bob.lastplace = bob.place
 		bob.dir = stod(r)
 
-		times(bob)
 		view(bob)
 
 		fmt.Printf("%v \n", Fall)
@@ -165,7 +164,7 @@ func add(b *obj) {
 		if Bord[b.place[i+1]][b.place[i]] != 1 {
 			Bord[b.place[i+1]][b.place[i]] = 2
 		} else {
-			if b.place[i+1] == 20 {
+			if b.place[i+1] <= 20 {
 				b.d = true
 			}
 			if b.d {
@@ -193,14 +192,17 @@ func del(bob *obj) {
 func move(bob *obj) {
 	switch int(bob.dir) {
 	case 0: //down
-		if Line < 19 {
+
+		if bob.place[1] < 20 && bob.place[3] < 20 && bob.place[5] < 20 && bob.place[7] < 20 {
+
 			for i := 1; i < 8; i += 2 {
 				bob.place[i]++
 
 			}
 		} else {
-			bob.newlook()
+			bob.place = bob.lastplace
 		}
+
 	case 1: //left
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]++
@@ -237,26 +239,6 @@ func stod(s string) dir {
 	}
 
 	return d
-}
-func times(bob *obj) {
-	now := time.Now().UnixNano()
-	down := (int(now-T) / 1000000)
-	Fall = down / Delay
-	Line += Fall
-	if Line >= 20 {
-		Fall = 0
-		Line = 0
-		T = time.Now().UnixNano()
-	}
-	for x := 0; x < Fall; x++ {
-		for i := 1; i < 8; i += 2 {
-			if bob.place[i] < 20 {
-				bob.place[i]++
-			} else {
-				bob.place[i] = 20
-			}
-		}
-	}
 }
 
 func (bop *obj) newlook() {
