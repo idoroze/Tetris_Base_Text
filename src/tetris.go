@@ -51,7 +51,6 @@ type deBug struct {
 	place     [200][]int
 	lastplace [200][]int
 	dir       []dir
-	d         []bool
 	dead      []int
 	counter   int
 	activate  bool
@@ -66,26 +65,27 @@ func init() {
 
 func main() {
 	fmt.Println("ready")
+	T = time.Now().UnixNano()
 	var r string
 	x := [8]int{5, 0, 6, 0, 5, 1, 6, 1}
 	bob := newobj(x)
-	T = time.Now().UnixNano()
+	view(bob)
+
+
 	for {
 		debug(bob)
-		T = time.Now().UnixNano()
-		add(bob)
-		view(bob)
+
 		_, err := fmt.Scanln(&r)
 		if err != nil {
 			panic(err)
 		}
+
 		bob.lastplace = bob.place
 		bob.dir = stod(r)
-		move(bob)
-		times(bob)
+
 		view(bob)
+
 		fmt.Printf("%v \n", Fall)
-		fmt.Println(r)
 		if Histroy.activate {
 			Histroy.Print()
 			break
@@ -97,7 +97,7 @@ func view(b *obj) {
 	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
 	cmd.Stdout = os.Stdout
 	cmd.Run()
-
+	add(b)
 	for y := 0; y < heigth; y++ {
 		for x := 0; x < width; x++ {
 			if x < width-1 {
@@ -114,13 +114,13 @@ func view(b *obj) {
 
 	}
 	if Hide {
-
 		if len(b.dead) != 0 {
 			fmt.Printf("pl: %v \nlp: %v \nded:%v \n", b.place, b.lastplace, b.dead[len(b.dead)-8:])
 		} else {
 			fmt.Printf("pl: %v \nlp: %v \n", b.place, b.lastplace)
 		}
 	}
+	del(b)
 }
 
 func edge() {
@@ -145,8 +145,8 @@ func newobj(p [8]int) *obj {
 	return &name
 }
 
-func add(bob *obj) {
-	b := bob
+func add(b *obj) {
+	move(b)
 	for out := 0; out < 8; out++ {
 		if b.place[out] > 21 { // can walk tour the edge
 			b.place = b.lastplace
@@ -154,26 +154,29 @@ func add(bob *obj) {
 	}
 
 	if len(b.dead) != 0 {
-		for rip := 0; rip < len(bob.dead); rip += 2 { // add the dead
+		for rip := 0; rip < len(b.dead); rip += 2 { // add the dead
 			Bord[b.dead[rip+1]][b.dead[rip]] = 3
 		}
 	}
 
 	for i := 0; i < 8; i += 2 {
+
 		if Bord[b.place[i+1]][b.place[i]] != 1 {
 			Bord[b.place[i+1]][b.place[i]] = 2
 		} else {
-			if b.place[i+1] == 20 {
+
+			if b.place[i+1] >= 20 {
 				b.d = true
 			}
+
 			if b.d {
 				for _, val := range b.lastplace { //add to dead
-					bob.dead = append(bob.dead, val)
-					bob.newlook()
+					b.dead = append(b.dead, val)
+					b.newlook()
 					b.d = false
 				}
 			} else {
-				bob.place = bob.lastplace
+				b.place = b.lastplace
 			}
 
 		}
@@ -181,26 +184,32 @@ func add(bob *obj) {
 
 }
 
-func move(bob *obj) {
+func del(bob *obj) {
+	for i := 0; i < 8; i += 2 {
+		Bord[bob.place[i+1]][bob.place[i]] = 0
+		Bord[bob.lastplace[i+1]][bob.lastplace[i]] = 0
+	}
+}
 
+func move(bob *obj) {
 	switch int(bob.dir) {
-	case 0:
-		del(bob)
-		if Line < 19 {
+	case 0: //down
+
+		if bob.place[1] < 20 && bob.place[3] < 20 && bob.place[5] < 20 && bob.place[7] < 20 {
+
 			for i := 1; i < 8; i += 2 {
 				bob.place[i]++
 
 			}
 		} else {
-			bob.newlook()
+			bob.place = bob.lastplace
 		}
+
 	case 1: //left
-		del(bob)
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]++
 		}
 	case 2: //right
-		del(bob)
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]--
 		}
@@ -209,19 +218,11 @@ func move(bob *obj) {
 	case 404:
 		Hide = !Hide
 	default:
-		del(bob)
 		bob.dir = -1
 	}
 
-	add(bob)
-
 }
 
-func del(bob *obj) {
-	for i := 0; i < 8; i += 2 {
-		Bord[bob.place[i+1]][bob.place[i]] = 0
-	}
-}
 func stod(s string) dir {
 	var d dir
 	switch s {
@@ -241,48 +242,12 @@ func stod(s string) dir {
 
 	return d
 }
-func times(bob *obj) {
-	now := time.Now().UnixNano()
-	down := (int(now-T) / 1000000)
-	Fall = down / Delay
-	Line += Fall
-	if Line >= 20 {
-		Fall = 0
-		Line = 0
-		T = time.Now().UnixNano()
-	}
-	del(bob)
 
-	for x := 0; x < Fall; x++ {
-		for i := 1; i < 8; i += 2 {
-			if bob.place[i] < 20 {
-				bob.place[i]++
-			} else {
-				bob.place[i] = 20
-			}
-		}
-	}
-}
-
-func check() {
-	a := Bord[20][1:11]
-	for line := 0; line < heigth-1; line++ {
-		for num := 0; num < len(a); num++ {
-			if a[0] == a[num] && a[num] != 0 {
-				linedown(line)
-			}
-		}
-	}
-}
-func linedown(line int) {
-	for x := line; x >= 0; x-- {
-		Bord[line] = Bord[x]
-	}
-}
 func (bop *obj) newlook() {
 	bop.place = [8]int{5, 0, 6, 0, 5, 1, 6, 1}
-
 }
+
+//debug
 func debug(d *obj) {
 	Histroy.dead = d.dead
 	pl := []int{}
@@ -296,7 +261,6 @@ func debug(d *obj) {
 	Histroy.place[Histroy.counter] = append(Histroy.place[Histroy.counter], pl...)
 	Histroy.lastplace[Histroy.counter] = append(Histroy.lastplace[Histroy.counter], lp...)
 	Histroy.dir = append(Histroy.dir, d.dir)
-	Histroy.d = append(Histroy.d, d.d)
 	Histroy.line = append(Histroy.line, Line)
 	Histroy.counter++
 
@@ -309,13 +273,29 @@ func (*deBug) Print() {
 	fmt.Print("place : lastplace \n")
 	for num := 0; num < len(Histroy.place); num++ {
 		if Histroy.place[num] != nil {
-			fmt.Printf(" %v :%v \n", Histroy.place[num], Histroy.lastplace[num])
+			fmt.Printf("\n\t%v:%v\n", Histroy.place[num], Histroy.lastplace[num])
 		} else {
 			fmt.Print("\n")
 			break
 		}
 	}
+	fmt.Print("dead:\n")
+	if len(Histroy.dead) != 0 {
 
-	fmt.Printf("dir %v\ndead %v\nd %v\nline:%v\n", Histroy.dir, Histroy.dead, Histroy.d, Histroy.line)
+		for id := range Histroy.dead {
+			if (id+1)%8 == 0 {
+				fmt.Print("\n")
+			} else {
+				if id%8 == 0 {
+					fmt.Printf("\t%v\n", Histroy.dead[id:id+8])
+				}
+
+			}
+
+		}
+
+	}
+
+	fmt.Printf("dir: \n\t%v\nLine:\n\t%v\n", Histroy.dir, Histroy.line)
 
 }
