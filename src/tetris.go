@@ -71,9 +71,9 @@ func main() {
 	bob := newobj(x)
 	view(bob)
 
+
 	for {
 		debug(bob)
-		T = time.Now().UnixNano()
 
 		_, err := fmt.Scanln(&r)
 		if err != nil {
