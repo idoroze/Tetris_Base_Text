@@ -13,7 +13,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"time"
+
+	"github.com/eiannone/keyboard"
 )
 
 const (
@@ -65,23 +66,29 @@ func init() {
 
 func main() {
 	fmt.Println("ready")
-	T = time.Now().UnixNano()
-	var r string
+	//T = time.Now().UnixNano()
 	x := [8]int{5, 0, 6, 0, 5, 1, 6, 1}
 	bob := newobj(x)
 	view(bob)
-
+	// key event
+	err := keyboard.Open()
+	if err != nil {
+		panic(err)
+	}
+	defer keyboard.Close()
 
 	for {
 		debug(bob)
-
-		_, err := fmt.Scanln(&r)
+		r, key, err := keyboard.GetKey()
 		if err != nil {
+
 			panic(err)
+		} else if key == keyboard.KeyEsc {
+			break
 		}
 
 		bob.lastplace = bob.place
-		bob.dir = stod(r)
+		bob.dir = dir(r)
 
 		view(bob)
 
@@ -193,7 +200,7 @@ func del(bob *obj) {
 
 func move(bob *obj) {
 	switch int(bob.dir) {
-	case 0: //down
+	case 83, 115: //down
 
 		if bob.place[1] < 20 && bob.place[3] < 20 && bob.place[5] < 20 && bob.place[7] < 20 {
 
@@ -205,42 +212,22 @@ func move(bob *obj) {
 			bob.place = bob.lastplace
 		}
 
-	case 1: //left
+	case 100, 68: //left
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]++
 		}
-	case 2: //right
+	case 65, 97: //right
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]--
 		}
-	case 255: //debug
+	case 72: //debug
 		Histroy.activate = !Histroy.activate
-	case 404:
+	case 104:
 		Hide = !Hide
 	default:
 		bob.dir = -1
 	}
 
-}
-
-func stod(s string) dir {
-	var d dir
-	switch s {
-	case "d", "D":
-		d = dir(1)
-	case "a", "A":
-		d = dir(2)
-	case "s", "S":
-		d = dir(0)
-	case "H":
-		d = dir(255)
-	case "h":
-		d = dir(404)
-	default:
-		d = dir(-1)
-	}
-
-	return d
 }
 
 func (bop *obj) newlook() {
