@@ -14,6 +14,8 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/eiannone/keyboard"
 )
 
 const (
@@ -24,12 +26,10 @@ const (
 var (
 	//Bord you dont mess with it
 	Bord [heigth][width]int // x,y
-	//T = time
-	T int64
 	// Fall for how many time he need to fall
 	Fall int
 	//Delay the player
-	Delay int
+	Delay time.Duration
 	// Line the obj found
 	Line int
 	//Histroy show the histroy of the game
@@ -59,33 +59,41 @@ type deBug struct {
 
 func init() {
 	edge()
-	Delay = 300
-
+	Delay = 3000 * time.Millisecond
 }
 
 func main() {
 	fmt.Println("ready")
-	T = time.Now().UnixNano()
-	var r string
+	T := time.Now()
 	x := [8]int{5, 0, 6, 0, 5, 1, 6, 1}
 	bob := newobj(x)
 	view(bob)
-
+	// key event
+	err := keyboard.Open()
+	if err != nil {
+		panic(err)
+	}
+	defer keyboard.Close()
 
 	for {
 		debug(bob)
-
-		_, err := fmt.Scanln(&r)
+		r, key, err := keyboard.GetKey()
 		if err != nil {
+
 			panic(err)
+		} else if key == keyboard.KeyEsc {
+			break
 		}
 
 		bob.lastplace = bob.place
-		bob.dir = stod(r)
+		bob.dir = dir(r)
+		go view(bob)
+		fmt.Printf("%v , %v\n", time.Since(T), Delay)
+		if (time.Since(T)) >= Delay {
+			down(bob)
+			T = time.Now()
+		}
 
-		view(bob)
-
-		fmt.Printf("%v \n", Fall)
 		if Histroy.activate {
 			Histroy.Print()
 			break
@@ -97,6 +105,7 @@ func view(b *obj) {
 	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
 	cmd.Stdout = os.Stdout
 	cmd.Run()
+
 	add(b)
 	for y := 0; y < heigth; y++ {
 		for x := 0; x < width; x++ {
@@ -193,7 +202,7 @@ func del(bob *obj) {
 
 func move(bob *obj) {
 	switch int(bob.dir) {
-	case 0: //down
+	case 83, 115: //down
 
 		if bob.place[1] < 20 && bob.place[3] < 20 && bob.place[5] < 20 && bob.place[7] < 20 {
 
@@ -205,42 +214,22 @@ func move(bob *obj) {
 			bob.place = bob.lastplace
 		}
 
-	case 1: //left
+	case 100, 68: //left
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]++
 		}
-	case 2: //right
+	case 65, 97: //right
 		for i := 0; i < 8; i += 2 {
 			bob.place[i]--
 		}
-	case 255: //debug
+	case 72: //debug
 		Histroy.activate = !Histroy.activate
-	case 404:
+	case 104:
 		Hide = !Hide
 	default:
 		bob.dir = -1
 	}
 
-}
-
-func stod(s string) dir {
-	var d dir
-	switch s {
-	case "d", "D":
-		d = dir(1)
-	case "a", "A":
-		d = dir(2)
-	case "s", "S":
-		d = dir(0)
-	case "H":
-		d = dir(255)
-	case "h":
-		d = dir(404)
-	default:
-		d = dir(-1)
-	}
-
-	return d
 }
 
 func (bop *obj) newlook() {
@@ -297,5 +286,18 @@ func (*deBug) Print() {
 	}
 
 	fmt.Printf("dir: \n\t%v\nLine:\n\t%v\n", Histroy.dir, Histroy.line)
+
+}
+
+func down(bob *obj) {
+	if bob.place[1] < 20 && bob.place[3] < 20 && bob.place[5] < 20 && bob.place[7] < 20 {
+
+		for i := 1; i < 8; i += 2 {
+			bob.place[i]++
+
+		}
+	} else {
+		bob.place = bob.lastplace
+	}
 
 }
