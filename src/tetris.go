@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/eiannone/keyboard"
 )
@@ -25,12 +26,10 @@ const (
 var (
 	//Bord you dont mess with it
 	Bord [heigth][width]int // x,y
-	//T = time
-	T int64
 	// Fall for how many time he need to fall
 	Fall int
 	//Delay the player
-	Delay int
+	Delay time.Duration
 	// Line the obj found
 	Line int
 	//Histroy show the histroy of the game
@@ -60,13 +59,12 @@ type deBug struct {
 
 func init() {
 	edge()
-	Delay = 300
-
+	Delay = 3000 * time.Millisecond
 }
 
 func main() {
 	fmt.Println("ready")
-	//T = time.Now().UnixNano()
+	T := time.Now()
 	x := [8]int{5, 0, 6, 0, 5, 1, 6, 1}
 	bob := newobj(x)
 	view(bob)
@@ -89,10 +87,13 @@ func main() {
 
 		bob.lastplace = bob.place
 		bob.dir = dir(r)
+		go view(bob)
+		fmt.Printf("%v , %v\n", time.Since(T), Delay)
+		if (time.Since(T)) >= Delay {
+			down(bob)
+			T = time.Now()
+		}
 
-		view(bob)
-
-		fmt.Printf("%v \n", Fall)
 		if Histroy.activate {
 			Histroy.Print()
 			break
@@ -104,6 +105,7 @@ func view(b *obj) {
 	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
 	cmd.Stdout = os.Stdout
 	cmd.Run()
+
 	add(b)
 	for y := 0; y < heigth; y++ {
 		for x := 0; x < width; x++ {
@@ -284,5 +286,18 @@ func (*deBug) Print() {
 	}
 
 	fmt.Printf("dir: \n\t%v\nLine:\n\t%v\n", Histroy.dir, Histroy.line)
+
+}
+
+func down(bob *obj) {
+	if bob.place[1] < 20 && bob.place[3] < 20 && bob.place[5] < 20 && bob.place[7] < 20 {
+
+		for i := 1; i < 8; i += 2 {
+			bob.place[i]++
+
+		}
+	} else {
+		bob.place = bob.lastplace
+	}
 
 }
