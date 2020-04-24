@@ -1,5 +1,6 @@
 package main
 
+// https://github.com/idoroze/Tetris_Base_Text
 //  ________________       ______________      ________________    _________           __        ________
 // |                |     |              |    |                |  |   ___   \         |  |      /        \
 //  ¯¯¯¯¯|   |¯¯¯¯¯¯      |  |¯¯¯¯¯¯¯¯¯¯¯      ¯¯¯¯¯|   |¯¯¯¯¯¯   |  |   |   |         ¯¯      /  \¯¯¯¯\  \
@@ -55,15 +56,18 @@ type deBug struct {
 	counter   int
 	activate  bool
 	line      []int
+	bord      [21][12]int
 }
 
 func init() {
 	edge()
 	Delay = 3000 * time.Millisecond
+
 }
 
 func main() {
 	fmt.Println("ready")
+
 	T := time.Now()
 	x := [8]int{5, 0, 6, 0, 5, 1, 6, 1}
 	bob := newobj(x)
@@ -76,7 +80,7 @@ func main() {
 	defer keyboard.Close()
 
 	for {
-		debug(bob)
+		check(bob)
 		r, key, err := keyboard.GetKey()
 		if err != nil {
 
@@ -87,10 +91,10 @@ func main() {
 
 		bob.lastplace = bob.place
 		bob.dir = dir(r)
-		go view(bob)
+		view(bob)
 		fmt.Printf("%v , %v\n", time.Since(T), Delay)
 		if (time.Since(T)) >= Delay {
-			down(bob)
+			go down(bob)
 			T = time.Now()
 		}
 
@@ -107,6 +111,7 @@ func view(b *obj) {
 	cmd.Run()
 
 	add(b)
+	debug(b)
 	for y := 0; y < heigth; y++ {
 		for x := 0; x < width; x++ {
 			if x < width-1 {
@@ -143,12 +148,6 @@ func edge() {
 }
 
 func newobj(p [8]int) *obj {
-	//Iblock = [8]int{5, 0, 6, 0, 5, 1, 6, 1}
-	//jblock = [8]int{5, 0, 6, 0, 5, 1, 5, 2}
-	//lblock = [8]int{5, 0, 4, 0, 5, 1, 5, 2}
-	//sblock
-	//Tblock = [8]int{5, 0, 4, 0, 6, 0, 5, 1}
-	//zblock
 	name := obj{p, dir(0), p, false, nil}
 
 	return &name
@@ -157,7 +156,7 @@ func newobj(p [8]int) *obj {
 func add(b *obj) {
 	move(b)
 	for out := 0; out < 8; out++ {
-		if b.place[out] > 21 { // can walk tour the edge
+		if b.place[out] > 21 { // can't walk tour the edge
 			b.place = b.lastplace
 		}
 	}
@@ -170,11 +169,11 @@ func add(b *obj) {
 
 	for i := 0; i < 8; i += 2 {
 
-		if Bord[b.place[i+1]][b.place[i]] != 1 {
+		if Bord[b.place[i+1]][b.place[i]] == 0 {
 			Bord[b.place[i+1]][b.place[i]] = 2
 		} else {
 
-			if b.place[i+1] >= 20 {
+			if b.place[i+1] >= 20 || Bord[b.place[i+1]][b.place[i]] == 3 {
 				b.d = true
 			}
 
@@ -194,14 +193,21 @@ func add(b *obj) {
 }
 
 func del(bob *obj) {
-	for i := 0; i < 8; i += 2 {
-		Bord[bob.place[i+1]][bob.place[i]] = 0
-		Bord[bob.lastplace[i+1]][bob.lastplace[i]] = 0
+	for y := 0; y < heigth; y++ {
+		for x := 0; x < width; x++ {
+			if Bord[y][x] != 1 {
+				Bord[y][x] = 0
+			}
+
+		}
 	}
+
 }
 
 func move(bob *obj) {
 	switch int(bob.dir) {
+	case 119, 87: //up change pos
+		change(bob)
 	case 83, 115: //down
 
 		if bob.place[1] < 20 && bob.place[3] < 20 && bob.place[5] < 20 && bob.place[7] < 20 {
@@ -233,7 +239,16 @@ func move(bob *obj) {
 }
 
 func (bop *obj) newlook() {
-	bop.place = [8]int{5, 0, 6, 0, 5, 1, 6, 1}
+	//Shape := map[int][8]int{
+	//0: [8]int{5, 0, 6, 0, 5, 1, 6, 1}, //shape cube
+	//1: [8]int{5, 0, 6, 0, 5, 1, 5, 2}, //shape J
+	//2: [8]int{5, 0, 4, 0, 5, 1, 5, 2}, //shape L
+	//3: [8]int{5, 0, 6, 0, 1, 5, 1, 4}, //shape S
+	//4: [8]int{5, 0, 4, 0, 6, 0, 5, 1}, //shape T
+	//5: [8]int{5, 0, 4, 0, 1, 5, 1, 6}, //shape Z
+	//	}
+
+	bop.place = [8]int{5, 0, 6, 0, 5, 1, 6, 1} //Shape[rand.Intn(6)]
 }
 
 //debug
@@ -251,6 +266,7 @@ func debug(d *obj) {
 	Histroy.lastplace[Histroy.counter] = append(Histroy.lastplace[Histroy.counter], lp...)
 	Histroy.dir = append(Histroy.dir, d.dir)
 	Histroy.line = append(Histroy.line, Line)
+	Histroy.bord = Bord
 	Histroy.counter++
 
 }
@@ -286,6 +302,7 @@ func (*deBug) Print() {
 	}
 
 	fmt.Printf("dir: \n\t%v\nLine:\n\t%v\n", Histroy.dir, Histroy.line)
+	fmt.Printf("\n%v", Histroy.dead)
 
 }
 
@@ -300,4 +317,67 @@ func down(bob *obj) {
 		bob.place = bob.lastplace
 	}
 
+}
+func change(bob *obj) {
+
+}
+
+func check(b *obj) {
+	arr := b.dead
+	var arr1 []int
+	//https://stackoverflow.com/questions/42184152/golang-print-the-number-of-occurances-of-the-values-in-an-array
+	for i := 1; i < len(arr); i += 2 {
+		arr1 = append(arr1, arr[i])
+
+	}
+
+	dict := make(map[int]int)
+	for _, num := range arr1 {
+		dict[num] = dict[num] + 1
+	}
+
+	var x []int
+	var done []int
+	for plc, ts := range dict {
+		if ts == 10 {
+			x = append(x, plc)
+		}
+	}
+	for i, v := range arr {
+		for _, v1 := range x {
+			if v == v1 {
+				done = append(done, i)
+			}
+		}
+	}
+
+	//https://stackoverflow.com/questions/37334119/how-to-delete-an-element-from-a-slice-in-golang
+	for i := len(done) - 1; i > 0; i-- {
+		arr[i], arr[i+1] = arr[len(arr)-2], arr[len(arr)-1]
+		arr = append(arr[:i], arr[i+2:]...)
+		if len(arr) <= 4 {
+			fmt.Println("arr[:i]:", arr[:i], " arr[i+2]:", arr, " i:", i)
+			arr = arr[len(arr)-2:]
+			if len(arr) <= 2 {
+				arr = []int{}
+				break
+			}
+
+		}
+
+	}
+
+	fmt.Println(arr)
+
+	for plc, ts := range dict {
+		if ts == 10 {
+			for y := 1; y < len(arr); y += 2 {
+				if y < plc {
+					arr[y]++
+				}
+
+			}
+		}
+	}
+	b.dead = arr
 }
