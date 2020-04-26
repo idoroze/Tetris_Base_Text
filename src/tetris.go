@@ -12,7 +12,6 @@ package main
 //        ¯¯¯              ¯¯¯¯¯¯¯¯¯¯¯¯¯¯            ¯¯¯           ¯¯¯      ¯¯¯        ¯¯       ¯¯¯¯¯¯¯¯¯¯
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"os/exec"
 	"time"
@@ -107,8 +106,8 @@ func main() {
 	}
 }
 
-func view(b *obj) { //print the bord
-	cmd := exec.Command("cmd", "/c", "cls") //clear trm
+func view(b *obj) {
+	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 	del(b)
@@ -141,7 +140,7 @@ func view(b *obj) { //print the bord
 	check(b)
 }
 
-func edge() { // make the eage in the bord
+func edge() {
 	for i := 0; i < width-1; i++ {
 		Bord[heigth-1][i] = 1
 	}
@@ -153,10 +152,11 @@ func edge() { // make the eage in the bord
 
 func newobj(p [8]int) *obj {
 	name := obj{p, dir(0), p, false, nil, 0, 0}
+
 	return &name
 }
 
-func add(b *obj) { // add the value of dead and the obj
+func add(b *obj) {
 	edge()
 	for out := 0; out < 8; out++ {
 		if b.place[out] >= heigth { // can't walk tour the edge
@@ -194,7 +194,7 @@ func add(b *obj) { // add the value of dead and the obj
 
 }
 
-func del(b *obj) { // delet the obj form the borad for move it
+func del(b *obj) {
 	move(b)
 	for y := 0; y < heigth; y++ {
 		for x := 0; x < width; x++ {
@@ -203,7 +203,7 @@ func del(b *obj) { // delet the obj form the borad for move it
 	}
 }
 
-func move(bob *obj) { // moving obj and more thing(debug & hide)
+func move(bob *obj) {
 	switch int(bob.dir) {
 	case 119, 87: //up change pos
 		bob.pos++
@@ -238,7 +238,7 @@ func move(bob *obj) { // moving obj and more thing(debug & hide)
 
 }
 
-func (b *obj) newlook() { // choose the next obj
+func (b *obj) newlook() {
 	Shape := map[int][8]int{
 		0: [8]int{5, 0, 6, 0, 5, 1, 6, 1}, //shape cube
 		1: [8]int{5, 1, 5, 0, 5, 2, 6, 0}, //shape J
@@ -246,16 +246,18 @@ func (b *obj) newlook() { // choose the next obj
 		3: [8]int{5, 1, 4, 1, 5, 0, 6, 0}, //shape S
 		4: [8]int{5, 1, 4, 0, 5, 0, 6, 0}, //shape T
 		5: [8]int{5, 1, 6, 1, 5, 0, 4, 0}, //shape Z
-		6: [8]int{5, 1, 5, 0, 5, 2, 5, 3},
 	}
-	r := rand.Intn(len(Shape))
+	r := 1 //int(time.Now().UnixNano()) % 10
 
+	if r > 5 {
+		r = 10 - r
+	}
 	b.pos = 0
 	b.shape = r
 	b.place = Shape[r]
 
 }
-func change(b *obj) { // routate the obj
+func change(b *obj) {
 
 	if b.pos >= 4 {
 		b.pos = 0
@@ -309,10 +311,10 @@ func change(b *obj) { // routate the obj
 			b.place[4], b.place[5] = b.place[0], b.place[1]-1
 			b.place[6], b.place[7] = b.place[0]+1, b.place[1]-1
 		case 1, 3:
-
-			b.place[2], b.place[3] = b.place[0], b.place[1]+1
+			b.place[2], b.place[3] = b.place[0], b.place[1]-1
 			b.place[4], b.place[5] = b.place[0]-1, b.place[1]
-			b.place[6], b.place[7] = b.place[0]-1, b.place[1]-1
+			b.place[6], b.place[7] = b.place[0]-1, b.place[1]+1
+
 		}
 	case 4:
 		switch b.pos {
@@ -321,17 +323,17 @@ func change(b *obj) { // routate the obj
 			b.place[4], b.place[5] = b.place[0], b.place[1]-1
 			b.place[6], b.place[7] = b.place[0]+1, b.place[1]-1
 		case 1:
-			b.place[2], b.place[3] = b.place[0]+1, b.place[1]-1
-			b.place[4], b.place[5] = b.place[0]+1, b.place[1]
-			b.place[6], b.place[7] = b.place[0]+1, b.place[1]+1
+			b.place[2], b.place[3] = b.place[0]+1, b.place[1]+1
+			b.place[4], b.place[5] = b.place[0]-1, b.place[1]
+			b.place[6], b.place[7] = b.place[0]-1, b.place[1]-1
 		case 2:
 			b.place[2], b.place[3] = b.place[0]-1, b.place[1]
-			b.place[4], b.place[5] = b.place[0], b.place[1]-1
-			b.place[6], b.place[7] = b.place[0]+1, b.place[1]
+			b.place[4], b.place[5] = b.place[0], b.place[1]+1
+			b.place[6], b.place[7] = b.place[0]-1, b.place[1]-1
 		case 3:
 			b.place[2], b.place[3] = b.place[0], b.place[1]+1
 			b.place[4], b.place[5] = b.place[0], b.place[1]-1
-			b.place[6], b.place[7] = b.place[0]+1, b.place[1]
+			b.place[6], b.place[7] = b.place[0]-1, b.place[1]
 		}
 	case 5:
 		switch b.pos {
@@ -340,26 +342,14 @@ func change(b *obj) { // routate the obj
 			b.place[4], b.place[5] = b.place[0], b.place[1]-1
 			b.place[6], b.place[7] = b.place[0]-1, b.place[1]-1
 		case 1, 3:
-			b.place[2], b.place[3] = b.place[0], b.place[1]-1
+			b.place[2], b.place[3] = b.place[0], b.place[1]+1
 			b.place[4], b.place[5] = b.place[0]-1, b.place[1]
-			b.place[6], b.place[7] = b.place[0]-1, b.place[1]+1
-		}
-	case 6:
-		switch b.pos {
-		case 0, 2:
-			b.place[2], b.place[3] = b.place[0], b.place[1]-1
-			b.place[4], b.place[5] = b.place[0], b.place[1]+1
-			b.place[6], b.place[7] = b.place[0], b.place[1]+2
-		case 1, 3:
-
-			b.place[2], b.place[3] = b.place[0]-1, b.place[1]
-			b.place[4], b.place[5] = b.place[0]+1, b.place[1]
-			b.place[6], b.place[7] = b.place[0]+2, b.place[1]
+			b.place[6], b.place[7] = b.place[0]+1, b.place[1]-1
 		}
 	}
 }
 
-func down(bob *obj) { // down by commend
+func down(bob *obj) {
 	if bob.place[1] < heigth && bob.place[3] < heigth && bob.place[5] < heigth && bob.place[7] < heigth {
 
 		for i := 1; i < 8; i += 2 {
@@ -372,15 +362,8 @@ func down(bob *obj) { // down by commend
 
 }
 
-func check(b *obj) { //check the bord
+func check(b *obj) {
 	for i := 1; i < len(b.dead); i += 2 {
-		if b.dead[i] == 0 {
-			cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
-			cmd.Stdout = os.Stdout
-			cmd.Run()
-			fmt.Println("game over")
-			os.Exit(2)
-		}
 		if b.dead[i] >= 21 {
 			b.dead[len(b.dead)-1] = b.dead[i]
 			b.dead[len(b.dead)-2] = b.dead[i-1]
@@ -424,7 +407,7 @@ func check(b *obj) { //check the bord
 		arr[i], arr[i+1] = arr[len(arr)-2], arr[len(arr)-1]
 		arr = append(arr[:i], arr[i+2:]...)
 		if len(arr) <= 4 {
-
+			fmt.Println("arr[:i]:", arr[:i], " arr[i+2]:", arr, " i:", i)
 			arr = arr[len(arr)-2:]
 			if len(arr) <= 2 {
 				arr = []int{}
@@ -434,18 +417,22 @@ func check(b *obj) { //check the bord
 		}
 
 	}
-	for _, ts := range dict {
+
+	for plc, ts := range dict {
 		if ts == 10 {
-			arr = []int{}
-			//for y := 1; y < len(arr); y += 2 {if plc == arr[y] {}arr[y]++}
-			break
+			for y := 1; y < len(arr); y += 2 {
+				if y < plc && y <= heigth {
+					arr[y]++
+				}
+
+			}
 		}
 	}
 	b.dead = arr
 }
 
 //debug
-func debug(d *obj) { // take value
+func debug(d *obj) {
 	Histroy.dead = d.dead
 	pl := []int{}
 	lp := []int{}
@@ -469,7 +456,7 @@ func debug(d *obj) { // take value
 
 }
 
-func (*deBug) Print() { // print all the value
+func (*deBug) Print() {
 	cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
 	cmd.Stdout = os.Stdout
 	cmd.Run()
